@@ -94,14 +94,63 @@ class Game():
                 if card.value == "DrawTwo":
                     DrawTwos.append(card)
 
-            #Stack draw chain
+            #Option to stack draw chain
             if len(DrawTwos) != 0:
-                currentPlayer.play(self.discard, random.choice(DrawTwos))
-                self.drawStack += 2
+
+                #If current player
+                if currentPlayer.cpu == False:
+                    currentPlayer.showHand()
+
+                    #Prompt to draw or play
+                    while True:
+                        print("Draw? (Y/N):")
+                        confirm = str(input("(Y/N)")).upper()
+
+                        if confirm != "Y" and confirm != "N":
+                            print("Enter Y or N")
+                        else:
+                            break
+
+                    #Player opts to draw
+                    if confirm == "Y":
+                        print("You draw {} cards".format(self.drawStack))
+                        currentPlayer.draw(self.deck, self.drawStack)
+
+                        #Action has been resolved
+                        self.drawStack = 0
+                        activeCard.action = False
+
+                    #Player opts to counter
+                    elif confirm == "N":
+
+                        #Standard play prompt
+                        while True:
+
+                            currentPlayer.showHand()
+                            print("Choose card (1, 2, 3, ...):")
+
+                            while True:
+                                try:
+                                    choice = int(input("Choose card (Index):")) - 1
+                                    break
+                                except ValueError:
+                                    print("Pick a numer (1, 2, 3, ...)")
+
+                            #Legality check
+                            if check_if_playable(activeCard, currentPlayer.hand[choice]):
+                                currentPlayer.play(self.discard, currentPlayer.hand[choice])
+                                break
+
+                            else:
+                                print("Not a legal card (Pick another)")
+
+                #CPU always plays DrawTwo
+                else:
+                    currentPlayer.play(self.discard, random.choice(DrawTwos))
+                    self.drawStack += 2
 
             #Take draw penalty
             else:
-
                 if currentPlayer.cpu == False:
                     print("You draw {} cards".format(self.drawStack))
                 else:
@@ -153,13 +202,43 @@ class Game():
 
             #Play random legal card
             if len(options) != 0:
-                self.playCard = random.choice(options)
-                currentPlayer.play(self.discard, self.playCard)
+
+                if currentPlayer.cpu == False:
+
+                    #Prompt to play a card
+                    while True:
+
+                        print("Active card: {} {}".format(activeCard.colour, activeCard.value))
+                        currentPlayer.showHand()
+                        print("Choose card (1, 2, 3, ...):")
+
+                        while True:
+                            try:
+                                choice = int(input("Choose card (Index):")) - 1
+                                break
+                            except ValueError:
+                                print("Pick a number (1, 2, 3, ...)")
+
+                        #Legality check
+                        if check_if_playable(activeCard, currentPlayer.hand[choice]):
+                            self.playCard = currentPlayer.hand[choice]
+                            currentPlayer.play(self.discard, currentPlayer.hand[choice])
+                            break
+
+                        else:
+                            print("Not a legal card (Pick another)")
+
+
+                #CPU plays random card
+                else:
+                    self.playCard = random.choice(options)
+                    currentPlayer.play(self.discard, self.playCard)
 
             #No available options
             else:
                 if currentPlayer.cpu == False:
                     print("You draw a card")
+                    currentPlayer.showHand()
                 else:
                     print("{} draws a card".format(currentPlayer.name))
                 currentPlayer.draw(self.deck)
@@ -168,8 +247,29 @@ class Game():
 
                 #Drawn card is playable
                 if check_if_playable(activeCard, newCard):
-                    currentPlayer.play(self.discard, newCard)
-                    self.playCard = newCard
+
+                    #Prompt to play drawn card
+                    if currentPlayer.cpu == False:
+
+                        while True:
+                            print("You drew a {} {}, Play? (Y/N)".format(newCard.colour, newCard.value))
+                            choice = str(input("Y/N:")).upper()
+
+                            if choice != "Y" and choice != "N":
+                                print("Enter Y or N")
+
+                            elif choice == "Y":
+                                currentPlayer.play(self.discard, newCard)
+                                self.playCard = newCard
+                                break
+
+                            elif choice == "N":
+                                break
+
+                    #CPU always plays card drawn if playable
+                    else:
+                        currentPlayer.play(self.discard, newCard)
+                        self.playCard = newCard
 
             #Adjust order for skip/reverse
             if self.playCard.action == True:
@@ -279,23 +379,32 @@ class Player():
             print("{}'s Hand:".format(self.name))
         report = ""
         for card in self.hand:
-            whatCard = "{} {}, ".format(card.colour, card.value)
+            whatCard = "{}.{} {}, ".format(self.hand.index(card)+1, card.colour, card.value)
             report += whatCard
-        print(report)
+        print(report[:-2])
 
     def play(self, deck, card):
 
         #Play card from hand to specified deck
         if self.cpu == False:
-            print("You play {} {}".format(card.colour, card.value))
+            print("You play {} {} ({} cards in hand)".format(card.colour, card.value, len(self.hand)))
         else:
-            print("{} plays {} {}".format(self.name, card.colour, card.value))
+            print("{} plays {} {} ({} cards in hand)".format(self.name, card.colour, card.value, len(self.hand)))
 
         #If wild change the colour of card
         if card.colour == "Wild":
             newColour = random.choice(["Red", "Blue", "Green", "Yellow"])
             if self.cpu == False:
-                print("You select {}".format(newColour))
+
+                while True:
+                    print("Select colour")
+                    newColour = str(input("Select colour:")).capitalize()
+
+                    if newColour in ["Red", "Blue", "Green", "Red"]:
+                        print("You select {}".format(newColour))
+                        break
+                    else:
+                        print("Pick valid colour (Red, Blue, Green, Yellow)")
             else:
                 print("{} selects {}".format(self.name, newColour))
             card.colour = newColour
