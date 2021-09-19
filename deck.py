@@ -403,9 +403,9 @@ class Player():
 
         #Play card from hand to specified deck
         if self.cpu == False:
-            print("{}, You play {} {} ({} cards in hand)".format(self.name, card.colour, card.value, len(self.hand)))
+            print("{}, You play {} {} ({} cards left in hand)".format(self.name, card.colour, card.value, len(self.hand)-1))
         else:
-            print("{} plays {} {} ({} cards in hand)".format(self.name, card.colour, card.value, len(self.hand)))
+            print("{} plays {} {} ({} cards left in hand)".format(self.name, card.colour, card.value, len(self.hand)-1))
 
         #If wild change the colour of card
         if card.colour == "Wild":
