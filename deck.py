@@ -158,6 +158,8 @@ class Game():
                             else:
                                 print("Not a legal card (Pick another)")
 
+                        self.drawStack += 2
+
                 #CPU always plays DrawTwo
                 else:
                     currentPlayer.play(self.discard, random.choice(DrawTwos))
@@ -431,4 +433,4 @@ class Player():
 
 #Sample test with friends
 names = ["Brian", "Scott", "Vlad", "Oisin", "Kenny", "Ruairc", "Jossal", "Eoin", "Darren"]
-Game(6 ,names, auto=False, n_players=2)
+Game(4 ,names, auto=False, n_players=1)
